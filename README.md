@@ -10,3 +10,4 @@ a major influence on increasing the weekly sales are also analysed to help the c
 R is used to clean the data. Preproecssing of data involves importing the csv files in R. The missing values are replaced by mean in case of 
 continuous variables and by modes in case of categorical variables. The data type of each variable is studied and the correct datatype is applied.
 R version 3.6.1 is used. R studio is installed. A working directory is set. All the 3 files are put in the working directory.
+Tableau Desktop is used for Data visualization
