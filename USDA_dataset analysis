@@ -1,0 +1,125 @@
+### Read the csv files in the folder
+
+data1 <- read.csv("USDA_Macronutrients.csv",header = TRUE)
+
+data2 <- read.csv("USDA_Micronutrients.csv", header = TRUE)
+
+
+###  Merged the data frames using the variable "ID". Name the Merged Data Frame "USDA". (4 points)
+
+USDA<- merge(data1,data2,by.x = "ID")
+
+
+ Checked the datatypes of the attributes. Delete the commas in the Sodium and Potasium records. Assign Sodium and Potasium as numeric data types. (6 points)
+
+str(USDA)
+
+USDA$Sodium <- gsub(',','',USDA$Sodium)
+USDA$Sodium <- as.numeric(USDA$Sodium)
+
+USDA$Potassium <- gsub(',','',USDA$Potassium)
+USDA$Potassium <- as.numeric(USDA$Potassium)
+
+str(USDA)
+
+### Removeed records (rows) with missing values in more than 4 attributes (columns). How many records remain in the data frame
+USDA2 <- USDA[rowSums(is.na(USDA)) < 5,]
+
+nrow(USDA2)
+
+### For records with missing values for Sugar, Vitamin E and Vitamin D, replaced missing values with mean value for the respective variable. (6 points)
+
+USDA2$Sugar <-ifelse(is.na(USDA2$Sugar),mean(USDA2$Sugar,na.rm = TRUE),USDA2$Sugar)
+
+USDA2$VitaminE <-ifelse(is.na(USDA2$VitaminE),mean(USDA2$VitaminE,na.rm = TRUE),USDA2$VitaminE)
+
+USDA2$VitaminD <-ifelse(is.na(USDA2$VitaminD),mean(USDA2$VitaminD,na.rm = TRUE),USDA2$VitaminD)
+
+### With a single line of code, removed all the remaining records with missing values. Named the new Data Frame "USDAclean". How many records remain in the data frame
+
+USDAclean <- na.omit(USDA2)
+
+nrow(USDAclean)
+
+### Found the food which has the highest sodium level
+
+Food_max_sodium <- USDAclean$Description[which(USDAclean$Sodium == max(USDAclean$Sodium))]
+Food_max_sodium
+
+### Created a histogram of Vitamin C distribution in foods, with a limit of 0 to 100 on the x-axis and breaks of 100.
+
+library(ggplot2)
+
+hist(USDAclean$VitaminC,main = "Distribution of Vitamin C in Foods",xlab = "Vitamin C",border = "blue",col = "green",
+     xlim = c(0,100),las=1,breaks = 100)
+
+### Created a boxplot to illustrate the distribution of values for TotalFat, Protein and Carbohydrate
+
+totalfat <- USDAclean$TotalFat
+protein <- USDAclean$Protein
+carbs <- USDAclean$Carbohydrate
+
+boxplot(totalfat,protein,carbs,main="Boxplots for totalfat,proteins & Carbs",names = c("TotalFat","Proteins","Carbohydrates"),
+        las=2,col = c("orange","red","blue"),border = "brown",horizontal = TRUE,notch = TRUE)
+        
+###Created a scatterplot to illustrate the relationship between a food's TotalFat content and its calorie content
+```{r}
+
+calories1 <- USDAclean$Calories
+
+plot(totalfat,calories1,main = "Relation between totalfat and calories",xlab = "Total Fat", ylab = "Calories")
+
+### Added a variable to the data frame that takes value 1 if the food has higher sodium than average, 0 otherwise.Called this variable HighSodium. Do the same for High Calories, High Protein, High Sugar, and High Fat. How many foods have both high sodium and high fat
+
+HighSodium <- ifelse(USDAclean$Sodium <= mean(USDAclean$Sodium,na.rm = TRUE),0,1)
+HighCalories <-ifelse(USDAclean$Calories <= mean(USDAclean$Calories,na.rm=TRUE),0,1)
+HighProtein <- ifelse(USDAclean$Protein <= mean(USDAclean$Protein,na.rm = TRUE),0,1)
+HighSugar <- ifelse(USDAclean$Sugar <= mean(USDAclean$Sugar,na.rm = TRUE),0,1)
+HighFat <- ifelse(USDAclean$TotalFat <= mean(USDAclean$TotalFat,na.rm = TRUE),0,1)
+
+USDAclean$HighSodium <- HighSodium
+USDAclean$HighCalories <- HighCalories
+USDAclean$HighProtein <- HighProtein
+USDAclean$HighSugar <- HighSugar
+USDAclean$HighFat <- HighFat
+
+HighSodiumFat <- data.frame(as.numeric(USDAclean$ID[which(USDAclean$HighSodium==1 & USDAclean$HighFat==1)]))
+nrow(HighSodiumFat)
+
+### 12. Calculate the average amount of iron, sorted by high and low protein
+
+Iron_HighProtein <- USDAclean$Iron[which(USDAclean$HighProtein == 1)]
+Iron_HighProtein_Mean <- mean(Iron_HighProtein,na.rm = TRUE)
+Iron_HighProtein_Mean
+
+Iron_LowProtein <- USDAclean$Iron[which(USDAclean$HighProtein == 0)]
+Iron_LowProtein_Mean <- mean(Iron_LowProtein,na.rm = TRUE)
+Iron_LowProtein_Mean
+
+### Created a script for a "HealthCheck" program to detect unhealthy foods. Use the algorithm flowchart below as a basis for this script. (8 points)
+```{r}
+install.packages("jpeg")
+require(jpeg)
+img<-readJPEG("HealthCheck.jpg")
+plot(1:4, ty = 'n', ann = F, xaxt = 'n', yaxt = 'n')
+rasterImage(img,1,1,4,4)
+
+HealthCheck <- ifelse(USDAclean$HighSodium == 0,print("pass"),ifelse(USDAclean$HighSugar==0,print("pass"),ifelse(USDAclean$HighFat==0,print("pass"),print("fail"))))
+
+### Added a new variable called HealthCheck to the data frame using the output of the function
+
+USDAclean$HealthCheck <- factor(HealthCheck)
+head(USDAclean$HealthCheck,10)
+names(USDAclean)
+str(USDAclean)
+
+### Found the foods in the USDAclean data frame which fail the HealthCheck
+food_fail <- USDAclean$ID[which(USDAclean$HealthCheck == "fail")]
+food_fail1 <- data.frame(food_fail)
+nrow(food_fail1)
+
+ Saved your final data frame as "USDAclean_ new" 
+USDAclean_mohan <- USDAclean
+str(USDAclean_mohan
+
+write.csv(USDAclean_new, file ="USDA_clean_save.csv")
